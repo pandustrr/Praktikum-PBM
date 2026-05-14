@@ -54,20 +54,31 @@ class ApiService {
     try {
       final response = await http.get(url, headers: await _getHeaders());
       if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body)['data'];
+        final decoded = jsonDecode(response.body);
+        print("DEBUG API RESPONSE: $decoded"); 
         
-        List list;
-        if (responseData is List) {
-          list = responseData;
-        } else if (responseData is Map && responseData['data'] is List) {
-          // Jika data dibungkus lagi (biasanya untuk paginasi)
-          list = responseData['data'];
-        } else {
-          list = [];
+        dynamic rawData;
+
+        if (decoded is List) {
+          rawData = decoded;
+        } else if (decoded is Map) {
+          if (decoded['data'] is List) {
+            rawData = decoded['data'];
+          } else if (decoded['data'] is Map) {
+            if (decoded['data']['data'] is List) {
+              rawData = decoded['data']['data'];
+            } else if (decoded['data']['products'] is List) {
+              rawData = decoded['data']['products'];
+            }
+          }
         }
-        
-        return list.map((json) => ProdukModel.dariJson(json)).toList();
+
+        if (rawData is List) {
+          return rawData.map((json) => ProdukModel.dariJson(json)).toList();
+        }
+        return [];
       } else {
+        print("API ERROR ${response.statusCode}: ${response.body}");
         throw Exception('Gagal load produk');
       }
     } catch (e) {

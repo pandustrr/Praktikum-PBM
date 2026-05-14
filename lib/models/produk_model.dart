@@ -16,10 +16,17 @@ class ProdukModel {
   });
 
   factory ProdukModel.dariJson(Map<String, dynamic> json) {
+    int ambilHarga(dynamic val) {
+      if (val is int) return val;
+      if (val is double) return val.toInt();
+      if (val is String) return double.tryParse(val)?.toInt() ?? 0;
+      return 0;
+    }
+
     return ProdukModel(
       id: json['id'],
       nama: json['name'] ?? '',
-      harga: json['price'] ?? 0,
+      harga: ambilHarga(json['price']),
       deskripsi: json['description'] ?? '',
       urlGithub: json['github_url'],
       dibuatPada: json['created_at'],
