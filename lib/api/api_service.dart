@@ -83,7 +83,7 @@ class ApiService {
         headers: await _getHeaders(),
         body: jsonEncode(product.keJson()),
       );
-      return response.statusCode == 200;
+      return response.statusCode >= 200 && response.statusCode < 300;
     } catch (e) {
       return false;
     }
@@ -97,7 +97,7 @@ class ApiService {
         headers: await _getHeaders(),
         body: jsonEncode(product.keJson()),
       );
-      return response.statusCode == 200;
+      return response.statusCode >= 200 && response.statusCode < 300;
     } catch (e) {
       return false;
     }
@@ -107,7 +107,7 @@ class ApiService {
     final url = Uri.https(_baseUrl, '/api/products/$id');
     try {
       final response = await http.delete(url, headers: await _getHeaders());
-      return response.statusCode == 200;
+      return response.statusCode >= 200 && response.statusCode < 300;
     } catch (e) {
       return false;
     }

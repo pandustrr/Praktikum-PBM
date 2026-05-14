@@ -36,35 +36,77 @@ class _KatalogPageState extends State<KatalogPage> {
   }
 
   void _showAdd() {
-    final cName = TextEditingController();
-    final cPrice = TextEditingController();
-    final cDesc = TextEditingController();
+    final cNama = TextEditingController();
+    final cHarga = TextEditingController();
+    final cDesk = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (c) => AlertDialog(
-        title: const Text('Add Draft'),
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppConstants.defaultRadius)),
+        title: Text('Buat Draft Baru', style: GoogleFonts.poppins(fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(controller: cName, decoration: const InputDecoration(labelText: 'Name')),
-            TextField(controller: cPrice, decoration: const InputDecoration(labelText: 'Price'), keyboardType: TextInputType.number),
-            TextField(controller: cDesc, decoration: const InputDecoration(labelText: 'Desc')),
+            _buildDialogInput(label: 'Nama Produk', controller: cNama),
+            const SizedBox(height: 12),
+            _buildDialogInput(label: 'Harga', controller: cHarga, type: TextInputType.number),
+            const SizedBox(height: 12),
+            _buildDialogInput(label: 'Deskripsi', controller: cDesk, maxLines: 3),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(c), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Batal')),
           ElevatedButton(
             onPressed: () async {
-              final p = ProdukModel(nama: cName.text, harga: int.tryParse(cPrice.text) ?? 0, deskripsi: cDesc.text);
-              if (await _api.saveDraft(p)) {
-                Navigator.pop(c);
+              if (cNama.text.isEmpty || cHarga.text.isEmpty) return;
+              
+              // TANGKAP navigator sebelum await
+              final navigator = Navigator.of(context);
+              final messenger = ScaffoldMessenger.of(context);
+
+              final p = ProdukModel(
+                nama: cNama.text,
+                harga: int.tryParse(cHarga.text) ?? 0,
+                deskripsi: cDesk.text,
+              );
+
+              final success = await _api.saveDraft(p);
+              
+              if (success) {
+                // Gunakan referensi yang sudah ditangkap
+                navigator.pop();
                 _load();
+              } else {
+                if (!mounted) return;
+                messenger.showSnackBar(
+                  const SnackBar(content: Text('Gagal menyimpan draft!')),
+                );
               }
             },
-            child: const Text('Save'),
+            child: const Text('Simpan'),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDialogInput({
+    required String label,
+    required TextEditingController controller,
+    TextInputType type = TextInputType.text,
+    int maxLines = 1,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: type,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        labelText: label,
+        isDense: true,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppConstants.defaultRadius),
+        ),
       ),
     );
   }
